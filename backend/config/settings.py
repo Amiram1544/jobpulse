@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Dependency Apps
     "channels",
-    "cors",
+    "corsheaders",
     # django Apps
     "jobs",
 ]

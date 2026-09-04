@@ -9,9 +9,9 @@ x-backend-env:
   POSTGRES_PASSWORD: "mydatabase"
   POSTGRES_HOST: "db"
   POSTGRES_PORT: "5432"
-  REDIS_URL: "reds://redis:6379/0"
-  CELERY_BROKER_URL: "reds://redis:6379/1"
-  CELERY_RESULT_BACKEND: "reds://redis:6379/2"
+  REDIS_URL: "redis://redis:6379/0"
+  CELERY_BROKER_URL: "redis://redis:6379/1"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/2"
 
 x-backend-service:
   &backend-base
@@ -30,7 +30,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db_data:var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mydatabase -d mydatabase"]
       interval: 5s
@@ -67,7 +67,8 @@ services:
       start_period: 20s
 
   worker:
-    <<: *backend-base
+    image: jobpulse-backend:latest
+    environment: *backend-env
     restart: unless-stopped
     command: celery -A config worker --loglevel=info
     depends_on:
@@ -78,22 +79,23 @@ services:
     
 
   beat:
-   <<:  *backend-base
+   image: jobpulse-backend:latest
+   environment: *backend-env
    restart: unless-stopped
    command: celery -A config beat --loglevel=info
    depends_on:
      redis:
        condition: service_healthy
 
-  frontend:
-    build: ./frontend
-    image: jobpulse-frontend:latest
-    restart: unless-stopped
-    ports:
-      - "5173:5173"
-    depends_on:
-      backend:
-        condition: service_healthy
+  # frontend:
+  #   build: ./frontend
+  #   image: jobpulse-frontend:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5173:5173"
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
 
 volumes:
   db_data:

@@ -1,3 +1,8 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 
 # Create your views here.
+
+
+def health(request):
+    return JsonResponse({"status": "ok", "message": "JobPulse backend is alive!"})
