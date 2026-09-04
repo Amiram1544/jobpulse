@@ -18,9 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from jobs.views import health
+from jobs.views import health, create_job, get_job
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/health/", health, name="health-check"),
+    path("api/jobs/", create_job, name="create-job"),
+    path("api/jobs/<uuid:job_id>/", get_job, name="get-job"),
 ]
