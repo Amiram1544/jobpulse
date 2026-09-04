@@ -2,6 +2,7 @@ import time
 from celery import shared_task
 
 from .models import Job
+from .services import send_job_event
 
 
 @shared_task(bind=True, acks_late=True)
@@ -13,6 +14,10 @@ def run_job(self, job_id):
 
         job.status = Job.Status.RUNNING
         job.save()
+        send_job_event(
+            str(job.id),
+            {"id": str(job.id), "status": job.status, "progress": job.progress},
+        )
 
         total_steps = 10
         for step in range(1, total_steps + 1):
@@ -24,6 +29,10 @@ def run_job(self, job_id):
             # Update progress in the database
             job.progress = int((step / total_steps) * 100)
             job.save()
+            send_job_event(
+                str(job.id),
+                {"id": str(job.id), "status": job.status, "progress": job.progress},
+            )
 
         job.status = Job.Status.DONE
         job.progress = 100
@@ -34,3 +43,12 @@ def run_job(self, job_id):
         print(f"[Celery Worker] Job {job_id} FAILED: {str(e)}")
         job.status = Job.Status.FAILED
         job.save()
+        send_job_event(
+            str(job.id),
+            {
+                "id": str(job.id),
+                "status": job.status,
+                "progress": job.progress,
+                "error": e,
+            },
+        )
