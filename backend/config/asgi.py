@@ -15,6 +15,7 @@ from jobs.routing import websocket_patterns
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
-        "websocket": AllowedHostsOriginValidator(URLRouter(websocket_patterns)),
+        "websocket": URLRouter(websocket_patterns),
+        # "websocket": AllowedHostsOriginValidator(URLRouter(websocket_patterns)),
     }
 )
